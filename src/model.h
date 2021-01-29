@@ -9,21 +9,25 @@
 
 #include "meta.h"
 
-template<typename Value,
-         Value(*meteFunc)(Value,Value,Value,Value,Value,Value,Value,Value,Value) = Meta::lifeGameRule>
+template<typename Value>
 class Model
 {
+    using RuleFunc = Value(*)(Value, Value, Value, Value, Value, Value, Value, Value, Value);
+    using DisplayFunc = Redopera::RColor(*)(Value);
+
 public:
     const unsigned THREAD_NUM = std::thread::hardware_concurrency() > 1 ? std::thread::hardware_concurrency() - 1 : 0;
 
     const size_t WIDTH;
     const size_t HEIGHT;
 
-    Model(size_t width, size_t height);
+    Model(size_t width, size_t height, RuleFunc rFunc = Meta::lifeGameRule, DisplayFunc dFunc = Meta::lifeGameDisplay);
     ~Model();
 
     Value value(size_t x, size_t y); //依据坐标返回单个数据
-    Redopera::RSize size() const { return { WIDTH, HEIGHT }; }
+    Redopera::RSize size() const { return Redopera::RSize(WIDTH, HEIGHT); }
+
+    Redopera::RColor display(size_t x, size_t y) { return displayFunc(value(x, y)); } ;
 
     void update(); //更新数据
     [[deprecated]] void updateDirect(); // 仅测试用
@@ -42,18 +46,20 @@ private:
     Value(* tModel_);
 
     std::atomic_size_t updateIndex_;
-    Value(*func_)(Value, Value, Value, Value, Value, Value, Value, Value, Value);
+    RuleFunc ruleFunc;
+    DisplayFunc displayFunc;
     std::vector<Redopera::RThread> threads_;
 };
 
-template<typename Value, Value (*meteFunc)(Value, Value, Value, Value, Value, Value, Value, Value, Value)>
-inline Model<Value, meteFunc>::Model(size_t width, size_t height):
+template<typename Value>
+inline Model<Value>::Model(size_t width, size_t height, RuleFunc rFunc, DisplayFunc dFunc):
     WIDTH(width),
     HEIGHT(height),
-    cModel_(new int[WIDTH * HEIGHT]),
-    tModel_(new int[WIDTH * HEIGHT]),
+    cModel_(new Value[WIDTH * HEIGHT]),
+    tModel_(new Value[WIDTH * HEIGHT]),
     updateIndex_(HEIGHT),
-    func_(meteFunc)
+    ruleFunc(rFunc),
+    displayFunc(dFunc)
 {
     std::fill_n(cModel_, WIDTH * HEIGHT, 0);
     std::fill_n(tModel_, WIDTH * HEIGHT, 0);
@@ -61,8 +67,8 @@ inline Model<Value, meteFunc>::Model(size_t width, size_t height):
     threads_.reserve(THREAD_NUM);
 }
 
-template<typename Value, Value (*meteFunc)(Value, Value, Value, Value, Value, Value, Value, Value, Value)>
-inline Model<Value, meteFunc>::~Model()
+template<typename Value>
+inline Model<Value>::~Model()
 {
     flush();
 
@@ -70,14 +76,14 @@ inline Model<Value, meteFunc>::~Model()
     delete [] tModel_;
 }
 
-template<typename Value, Value (*meteFunc)(Value, Value, Value, Value, Value, Value, Value, Value, Value)>
-inline Value Model<Value, meteFunc>::value(size_t x, size_t y)
+template<typename Value>
+inline Value Model<Value>::value(size_t x, size_t y)
 {
     return cModel_[y * WIDTH + x];
 }
 
-template<typename Value, Value (*meteFunc)(Value, Value, Value, Value, Value, Value, Value, Value, Value)>
-inline void Model<Value, meteFunc>::update()
+template<typename Value>
+inline void Model<Value>::update()
 {
     flush();
     std::swap(cModel_, tModel_);
@@ -89,8 +95,8 @@ inline void Model<Value, meteFunc>::update()
     }
 }
 
-template<typename Value, Value (*meteFunc)(Value, Value, Value, Value, Value, Value, Value, Value, Value)>
-inline void Model<Value, meteFunc>::updateDirect()
+template<typename Value>
+inline void Model<Value>::updateDirect()
 {
     for(size_t i = 0; i < HEIGHT; ++i)
     {
@@ -103,7 +109,7 @@ inline void Model<Value, meteFunc>::updateDirect()
             size_t l = (x + WIDTH - 1) % WIDTH;
             size_t r = (x + 1) % WIDTH;
 
-            tModel_[y + x] = func_(cModel_[t + l], cModel_[t + x], cModel_[t + r],
+            tModel_[y + x] = ruleFunc(cModel_[t + l], cModel_[t + x], cModel_[t + r],
                     cModel_[y + l], cModel_[y + x], cModel_[y + r],
                     cModel_[b + l], cModel_[b + x], cModel_[b + r]);
         }
@@ -112,22 +118,22 @@ inline void Model<Value, meteFunc>::updateDirect()
     std::swap(cModel_, tModel_);
 }
 
-template<typename Value, Value (*meteFunc)(Value, Value, Value, Value, Value, Value, Value, Value, Value)>
-inline void Model<Value, meteFunc>::flush()
+template<typename Value>
+inline void Model<Value>::flush()
 {
     updateInAThread();
     threads_.clear();
 }
 
-template<typename Value, Value (*meteFunc)(Value, Value, Value, Value, Value, Value, Value, Value, Value)>
-inline void Model<Value, meteFunc>::setValue(size_t x, size_t y, Value value)
+template<typename Value>
+inline void Model<Value>::setValue(size_t x, size_t y, Value value)
 {
     flush();
     tModel_[x + y * WIDTH] = value;
 }
 
-template<typename Value, Value (*meteFunc)(Value, Value, Value, Value, Value, Value, Value, Value, Value)>
-inline void Model<Value, meteFunc>::setRangeValue(size_t x, size_t y, size_t widht, size_t height, Value value)
+template<typename Value>
+inline void Model<Value>::setRangeValue(size_t x, size_t y, size_t widht, size_t height, Value value)
 {
 # ifndef NDEBUG
     if(x + widht > WIDTH || y + height > HEIGHT)
@@ -143,22 +149,22 @@ inline void Model<Value, meteFunc>::setRangeValue(size_t x, size_t y, size_t wid
     }
 }
 
-template<typename Value, Value (*meteFunc)(Value, Value, Value, Value, Value, Value, Value, Value, Value)>
-inline void Model<Value, meteFunc>::fill(Value value)
+template<typename Value>
+inline void Model<Value>::fill(Value value)
 {
     flush();
     std::fill_n(tModel_, WIDTH * HEIGHT, value);
 }
 
-template<typename Value, Value (*meteFunc)(Value, Value, Value, Value, Value, Value, Value, Value, Value)>
-inline void Model<Value, meteFunc>::clear()
+template<typename Value>
+inline void Model<Value>::clear()
 {
     flush();
     std::fill_n(tModel_, WIDTH * HEIGHT, 0);
 }
 
-template<typename Value, Value (*meteFunc)(Value, Value, Value, Value, Value, Value, Value, Value, Value)>
-inline void Model<Value, meteFunc>::updateInAThread()
+template<typename Value>
+inline void Model<Value>::updateInAThread()
 {
     for(size_t i = updateIndex_++; i < HEIGHT; i = updateIndex_++)
     {
@@ -171,7 +177,7 @@ inline void Model<Value, meteFunc>::updateInAThread()
             size_t l = x == 0 ? WIDTH - 1 : x - 1;
             size_t r = x == WIDTH - 1 ? 0 : x + 1;
 
-            tModel_[y + x] = func_(cModel_[t + l], cModel_[t + x], cModel_[t + r],
+            tModel_[y + x] = ruleFunc(cModel_[t + l], cModel_[t + x], cModel_[t + r],
                     cModel_[y + l], cModel_[y + x], cModel_[y + r],
                     cModel_[b + l], cModel_[b + x], cModel_[b + r]);
         }

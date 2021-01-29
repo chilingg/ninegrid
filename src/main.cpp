@@ -14,13 +14,13 @@ class View
 public:
     View():
         node("View", this),
-        model_(4096, 4096)
+        model_(4096, 4096, Meta::exchangeRule, Meta::exchangeDisplay)
     {
         node.setTransformFunc([this](RNode *sender, const RRect &info){ transform(sender, info); });
         node.setProcessFunc([this](RNode *sender, RNode::Instructs* ins){ process(sender, ins); });
         node.setUpdateFunc([this](RRenderSys *sys){ update(sys); });
 
-        /*滑翔机
+        /* 滑翔机
         model_.setValue(model_.WIDTH / 2, model_.HEIGHT / 2, 1);
         model_.setValue(model_.WIDTH / 2 - 1, model_.HEIGHT / 2, 1);
         model_.setValue(model_.WIDTH / 2, model_.HEIGHT / 2 + 1, 1);
@@ -28,9 +28,14 @@ public:
         model_.setValue(model_.WIDTH / 2 + 1, model_.HEIGHT / 2 - 1, 1);
         */
 
+        /* 周器型
         model_.setRangeValue(model_.WIDTH / 2, model_.HEIGHT / 2, 3, 8, 1);
         model_.setValue(model_.WIDTH / 2 + 1, model_.HEIGHT / 2 + 1, 0);
         model_.setValue(model_.WIDTH / 2 + 1, model_.HEIGHT / 2 + 6, 0);
+        */
+
+        model_.setValue(model_.WIDTH / 2 + 1, model_.HEIGHT / 2 + 1, INT_MAX);
+        model_.setValue(model_.WIDTH / 2 + 1, model_.HEIGHT / 2 + 6, INT_MIN);
     }
 
     RNode node;
@@ -81,9 +86,10 @@ private:
         {
             for(int j = 0; j < loader_.width(); ++j)
             {
-                loader_.data()[i * loader_.width() * 3 + j * 3] = model_.value(j + pos_.x(), i + pos_.y()) ? 255 : 0;
-                loader_.data()[i * loader_.width() * 3 + j * 3 + 1] = model_.value(j + pos_.x(), i + pos_.y()) ? 255 : 0;
-                loader_.data()[i * loader_.width() * 3 + j * 3 + 2] = model_.value(j + pos_.x(), i + pos_.y()) ? 255 : 0;
+                RColor color = model_.display(j + pos_.x(), i + pos_.y());
+                loader_.data()[i * loader_.width() * 3 + j * 3] = color.r();
+                loader_.data()[i * loader_.width() * 3 + j * 3 + 1] = color.g();
+                loader_.data()[i * loader_.width() * 3 + j * 3 + 2] = color.b();
             }
         }
         tex_.reload(loader_.data());
