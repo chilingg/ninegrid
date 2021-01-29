@@ -3,7 +3,7 @@
 
 namespace Meta {
 
-int lifeGameRule(int tl, int tm, int tr, int ml, int mm, int mr, int bl, int bm, int br)
+inline int lifeGameRule(int tl, int tm, int tr, int ml, int mm, int mr, int bl, int bm, int br)
 {
     int around = tl + tm + tr + ml + mr + bl + bm + br;
 

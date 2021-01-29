@@ -1,19 +1,20 @@
 #include "model.h"
-
 #include <RTimer.h>
-#include <RDebug.h>
+
+#include <iostream>
 
 using namespace Redopera;
 
 int main()
 {
-    Model<int, 4096> model;
+    Model<int> model(4096, 4096);
+
     RTimer timer;
 
-    timer.start();
     model.update();
     model.flush();
-    rDebug << timer.elapsed();
 
-	return 0;
+    std::cout << "Totle Time : " << timer.elapsed() << std::endl;
+
+    return 0;
 }
