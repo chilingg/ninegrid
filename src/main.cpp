@@ -14,13 +14,13 @@ class View
 public:
     View():
         node("View", this),
-        model_(4096, 4096, Meta::exchangeRule, Meta::mappingDisplay)
+        model_(256, 256, Meta::motionRule, Meta::explicitDisplay)
     {
         node.setTransformFunc([this](RNode *sender, const RRect &info){ transform(sender, info); });
         node.setProcessFunc([this](RNode *sender, RNode::Instructs* ins){ process(sender, ins); });
         node.setUpdateFunc([this](RRenderSys *sys){ update(sys); });
 
-        /* 滑翔机
+        /* 滑翔机 lifeGame
         model_.setValue(model_.WIDTH / 2, model_.HEIGHT / 2, 1);
         model_.setValue(model_.WIDTH / 2 - 1, model_.HEIGHT / 2, 1);
         model_.setValue(model_.WIDTH / 2, model_.HEIGHT / 2 + 1, 1);
@@ -28,15 +28,29 @@ public:
         model_.setValue(model_.WIDTH / 2 + 1, model_.HEIGHT / 2 - 1, 1);
         */
 
-        /* 周器型
+        /* 周期型 lifeGame
         model_.setRangeValue(model_.WIDTH / 2, model_.HEIGHT / 2, 3, 8, 1);
         model_.setValue(model_.WIDTH / 2 + 1, model_.HEIGHT / 2 + 1, 0);
         model_.setValue(model_.WIDTH / 2 + 1, model_.HEIGHT / 2 + 6, 0);
         */
 
+        /* 三极值 exchange
         model_.setValue(model_.WIDTH / 2 - 32, model_.HEIGHT / 2, INT_MAX);
         model_.setValue(model_.WIDTH / 2 + 32, model_.HEIGHT / 2, INT_MAX);
         model_.setValue(model_.WIDTH / 2, model_.HEIGHT / 2 - 32, INT_MIN);
+        */
+
+        /* 随机
+        for(size_t i = 0; i < 500; ++i)
+            model_.setValue(std::rand() % model_.WIDTH, std::rand() % model_.HEIGHT, rand());
+        */
+
+        /* 碰撞 motion
+        model_.setValue(0, 0, 4);
+        model_.setValue(100, 100, 3);
+        */
+
+        model_.setRangeValue(model_.WIDTH / 2, model_.HEIGHT / 2, 20, 20, 9);
     }
 
     RNode node;
@@ -47,6 +61,8 @@ private:
         ++count_;
         if(timer_.elapsed() > 1000)
         {
+            model_.setValue(std::rand() % model_.WIDTH, std::rand() % model_.HEIGHT, rand()); // 每秒生成
+
             rDebug << count_ / (timer_.elapsed() / 1000.);
             timer_.start();
             count_ = 0;
@@ -60,8 +76,8 @@ private:
 
     void transform(RNode *sender, const RRect& info)
     {
-        RRect rect(0, 0, std::min(info.width() / gridSize_ + 1ull, model_.WIDTH),
-                   std::min(info.height() / gridSize_ + 1ull, model_.HEIGHT));
+        RRect rect(0, 0, std::min(static_cast<size_t>(info.width() / gridSize_ + 1), model_.WIDTH),
+                   std::min(static_cast<size_t>(info.height() / gridSize_ + 1), model_.HEIGHT));
         rect.setCenter(RRect(RPoint(), model_.size()).center());
         pos_ = rect.pos();
 
@@ -117,7 +133,7 @@ int main()
     format.versionMajor = 4;
     format.versionMinor = 5;
     format.maximization = true;
-    format.background = 0x7fffffff;
+    format.background = 0x222233ff;
     RWindow window(800, 540, "CA", format);
 
     View view;

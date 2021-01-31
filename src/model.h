@@ -171,8 +171,8 @@ inline void Model<Value>::updateInAThread()
         size_t y = i * WIDTH;
         for(size_t x = 0; x < WIDTH; ++x)
         {
-            size_t t = i == 0 ? HEIGHT * WIDTH - WIDTH: i * WIDTH - WIDTH;
-            size_t b = i == HEIGHT - 1 ? 0 : i * WIDTH + WIDTH;
+            size_t b = i == 0 ? HEIGHT * WIDTH - WIDTH: i * WIDTH - WIDTH;
+            size_t t = i == HEIGHT - 1 ? 0 : i * WIDTH + WIDTH;
 
             size_t l = x == 0 ? WIDTH - 1 : x - 1;
             size_t r = x == WIDTH - 1 ? 0 : x + 1;

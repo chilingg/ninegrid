@@ -30,16 +30,6 @@ inline int lifeGameRule(int tl, int tm, int tr, int ml, int mm, int mr, int bl, 
     }
 }
 
-inline Redopera::RColor explicitDisplay(int value)
-{
-    if(value > 0)
-        return Redopera::RColor(0xff0000ffu);
-    else if(value < 0)
-        return Redopera::RColor(0x0ffffu);
-    else
-        return Redopera::RColor(0x0u);
-}
-
 inline int exchangeRule(int tl, int tm, int tr, int ml, int mm, int mr, int bl, int bm, int br)
 {
     mm /= 9;
@@ -53,6 +43,43 @@ inline int exchangeRule(int tl, int tm, int tr, int ml, int mm, int mr, int bl, 
     mm += br / 9;
 
     return mm;
+}
+
+inline int motionRule(int tl, int tm, int tr, int ml, int mm, int mr, int bl, int bm, int br)
+{
+    int value = 0;
+
+    if(mm % 9 == 0)
+        value = mm;
+
+    if(tl % 9 == 1)
+        value += tl;
+    if(tm % 9 == 3)
+        value += tm;
+    if(tr % 9 == 7)
+        value += tr;
+    if(ml % 9 == 4)
+        value += ml;
+    if(mr % 9 == 5)
+        value += mr;
+    if(bl % 9 == 2)
+        value += bl;
+    if(bm % 9 == 6)
+        value += bm;
+    if(br % 9 == 8)
+        value += br;
+
+    return value;
+}
+
+inline Redopera::RColor explicitDisplay(int value)
+{
+    if(value > 0)
+        return Redopera::RColor(0xff0000ffu);
+    else if(value < 0)
+        return Redopera::RColor(0x0ffffu);
+    else
+        return Redopera::RColor(0x0u);
 }
 
 inline Redopera::RColor mappingDisplay(int value)
