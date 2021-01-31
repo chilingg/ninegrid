@@ -14,7 +14,7 @@ class View
 public:
     View():
         node("View", this),
-        model_(4096, 4096, Meta::exchangeRule, Meta::exchangeDisplay)
+        model_(4096, 4096, Meta::exchangeRule, Meta::mappingDisplay)
     {
         node.setTransformFunc([this](RNode *sender, const RRect &info){ transform(sender, info); });
         node.setProcessFunc([this](RNode *sender, RNode::Instructs* ins){ process(sender, ins); });
@@ -34,8 +34,9 @@ public:
         model_.setValue(model_.WIDTH / 2 + 1, model_.HEIGHT / 2 + 6, 0);
         */
 
-        model_.setValue(model_.WIDTH / 2 + 1, model_.HEIGHT / 2 + 1, INT_MAX);
-        model_.setValue(model_.WIDTH / 2 + 1, model_.HEIGHT / 2 + 6, INT_MIN);
+        model_.setValue(model_.WIDTH / 2 - 32, model_.HEIGHT / 2, INT_MAX);
+        model_.setValue(model_.WIDTH / 2 + 32, model_.HEIGHT / 2, INT_MAX);
+        model_.setValue(model_.WIDTH / 2, model_.HEIGHT / 2 - 32, INT_MIN);
     }
 
     RNode node;
@@ -59,8 +60,8 @@ private:
 
     void transform(RNode *sender, const RRect& info)
     {
-        RRect rect(0, 0, std::min(info.width() / gridSize_ + 1ul, model_.WIDTH),
-                   std::min(info.height() / gridSize_ + 1ul, model_.HEIGHT));
+        RRect rect(0, 0, std::min(info.width() / gridSize_ + 1ull, model_.WIDTH),
+                   std::min(info.height() / gridSize_ + 1ull, model_.HEIGHT));
         rect.setCenter(RRect(RPoint(), model_.size()).center());
         pos_ = rect.pos();
 
@@ -116,7 +117,7 @@ int main()
     format.versionMajor = 4;
     format.versionMinor = 5;
     format.maximization = true;
-    format.background = 0x888888ff;
+    format.background = 0x7fffffff;
     RWindow window(800, 540, "CA", format);
 
     View view;

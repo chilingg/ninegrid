@@ -7,7 +7,7 @@ using namespace Redopera;
 
 int main()
 {
-    Model<int> model(4096, 4096, Meta::exchangeRule, Meta::exchangeDisplay);
+    Model<int> model(4096, 4096, Meta::exchangeRule, Meta::mappingDisplay);
 
     RTimer timer;
 

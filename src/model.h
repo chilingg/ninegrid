@@ -21,7 +21,7 @@ public:
     const size_t WIDTH;
     const size_t HEIGHT;
 
-    Model(size_t width, size_t height, RuleFunc rFunc = Meta::lifeGameRule, DisplayFunc dFunc = Meta::lifeGameDisplay);
+    Model(size_t width, size_t height, RuleFunc rFunc = Meta::lifeGameRule, DisplayFunc dFunc = Meta::explicitDisplay);
     ~Model();
 
     Value value(size_t x, size_t y); //依据坐标返回单个数据
