@@ -1,11 +1,12 @@
 #include <RGame.h>
 #include <RWindow.h>
+#include <RInput.h>
 #include <rsc/RTexture.h>
 #include <rsc/RImage.h>
 #include <RMath.h>
 #include <RTimer.h>
 
-#include "model.h"
+#include "Model.h"
 
 using namespace Redopera;
 
@@ -14,7 +15,7 @@ class View
 public:
     View():
         node("View", this),
-        model_(256, 256, Meta::motionRule, Meta::explicitDisplay)
+        model_(255, 255, Meta::motionRule, Meta::munitDisplay)
     {
         node.setTransformFunc([this](RNode *sender, const RRect &info){ transform(sender, info); });
         node.setProcessFunc([this](RNode *sender, RNode::Instructs* ins){ process(sender, ins); });
@@ -43,14 +44,21 @@ public:
         /* 随机
         for(size_t i = 0; i < 500; ++i)
             model_.setValue(std::rand() % model_.WIDTH, std::rand() % model_.HEIGHT, rand());
+        for(size_t i = 0; i < model_.HEIGHT; ++i)
+        {
+            for(size_t j = 0; j < model_.WIDTH; ++j)
+                model_.setValue(j, i, rand());
+        }
         */
+
 
         /* 碰撞 motion
-        model_.setValue(0, 0, 4);
-        model_.setValue(100, 100, 3);
+        model_.setValue(0, 0, 0xf0002);
+        model_.setValue(0, 4, 0xf0004);
         */
 
-        model_.setRangeValue(model_.WIDTH / 2, model_.HEIGHT / 2, 20, 20, 9);
+        //model_.setRangeValue(model_.WIDTH / 2, model_.HEIGHT / 2, 20, 20, 0x7fff0009);
+
     }
 
     RNode node;
@@ -61,7 +69,8 @@ private:
         ++count_;
         if(timer_.elapsed() > 1000)
         {
-            model_.setValue(std::rand() % model_.WIDTH, std::rand() % model_.HEIGHT, rand()); // 每秒生成
+            // 每秒随机生成
+            model_.setValue(std::rand() % model_.WIDTH, std::rand() % model_.HEIGHT, rand());
 
             rDebug << count_ / (timer_.elapsed() / 1000.);
             timer_.start();
@@ -97,8 +106,27 @@ private:
 
     void process(RNode*, RNode::Instructs*)
     {
-        model_.update();
+        if(pause_)
+        {
+            if(RInput::input().press(Keys::KEY_RIGHT))
+            {
+                updataModel();
+            }
+            if(RInput::input().press(Keys::KEY_SPACE))
+                pause_ = false;
+        }
+        else
+        {
+            if(RInput::input().press(Keys::KEY_SPACE))
+                pause_ = true;
 
+            updataModel();
+        }
+    }
+
+    void updataModel()
+    {
+        model_.update();
         for(int i = 0; i < loader_.height(); ++i)
         {
             for(int j = 0; j < loader_.width(); ++j)
@@ -112,6 +140,8 @@ private:
         tex_.reload(loader_.data());
     }
 
+    bool pause_ = false;
+
     RTimer timer_;
     unsigned count_ = 0;
 
@@ -121,7 +151,7 @@ private:
 
     RImage loader_;
     RTexture tex_;
-    Model<int> model_;
+    Model<Meta::MUnit> model_;
 };
 
 int main()
@@ -134,7 +164,7 @@ int main()
     format.versionMinor = 5;
     format.maximization = true;
     format.background = 0x222233ff;
-    RWindow window(800, 540, "CA", format);
+    RWindow window(800, 540, "Ninegrid", format);
 
     View view;
     view.node.changeParent(&window.node);

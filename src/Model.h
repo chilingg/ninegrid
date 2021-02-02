@@ -7,7 +7,7 @@
 #include <RThread.h>
 #include <RSize.h>
 
-#include "meta.h"
+#include "Meta.h"
 
 template<typename Value>
 class Model
@@ -98,24 +98,24 @@ inline void Model<Value>::update()
 template<typename Value>
 inline void Model<Value>::updateDirect()
 {
+    std::swap(cModel_, tModel_);
+
     for(size_t i = 0; i < HEIGHT; ++i)
     {
         size_t y = i * WIDTH;
         for(size_t x = 0; x < WIDTH; ++x)
         {
-            size_t t = (i + HEIGHT - 1) % HEIGHT * WIDTH;
-            size_t b = (i + 1) % HEIGHT * WIDTH;
+            size_t b = i == 0 ? HEIGHT * WIDTH - WIDTH: i * WIDTH - WIDTH;
+            size_t t = i == HEIGHT - 1 ? 0 : i * WIDTH + WIDTH;
 
-            size_t l = (x + WIDTH - 1) % WIDTH;
-            size_t r = (x + 1) % WIDTH;
+            size_t l = x == 0 ? WIDTH - 1 : x - 1;
+            size_t r = x == WIDTH - 1 ? 0 : x + 1;
 
             tModel_[y + x] = ruleFunc(cModel_[t + l], cModel_[t + x], cModel_[t + r],
                     cModel_[y + l], cModel_[y + x], cModel_[y + r],
                     cModel_[b + l], cModel_[b + x], cModel_[b + r]);
         }
     }
-
-    std::swap(cModel_, tModel_);
 }
 
 template<typename Value>
